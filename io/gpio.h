@@ -34,6 +34,13 @@ enum PortMode {
   PORT_MODE_PULL_DOWN
 };
 
+enum SenseMode {
+  SENSE_MODE_BOTH_EDGES,
+  SENSE_MODE_RISING,
+  SENSE_MODE_FALLING,
+  SENSE_MODE_LOW_LEVEL
+};
+
 #define WRAP_PORT(letter) \
 struct Port ## letter { \
   static inline PORT_t& port_t() { return PORT ## letter; } \
@@ -47,6 +54,7 @@ struct Port ## letter { \
   static inline uint8_t in() { return PORT ## letter ## _IN; } \
   static inline uint8_t dir() { return PORT ## letter ## _DIR; } \
   static inline uint8_t out() { return PORT ## letter ## _OUT; } \
+  static inline uint8_t event_base() { return EVSYS_CHMUX_PORT ## letter ## _PIN0_gc; } \
 };
 
 WRAP_PORT(A)
@@ -59,26 +67,26 @@ WRAP_PORT(E)
 #endif
 
 template<typename Port, uint8_t bit>
-struct PinControl {
+struct Pin {
   static inline void set_control(uint8_t value) { }
 };
 
-#define SPECIALIZE_PIN_CONTROL(id) \
+#define SPECIALIZE_PIN(id) \
 template<typename Port> \
-struct PinControl<Port, id> { \
-  static inline void set(uint8_t value) { \
+struct Pin<Port, id> { \
+  static inline void set_control(uint8_t value) { \
     Port::port_t().PIN ## id ## CTRL = value; \
   } \
 };
 
-SPECIALIZE_PIN_CONTROL(0)
-SPECIALIZE_PIN_CONTROL(1)
-SPECIALIZE_PIN_CONTROL(2)
-SPECIALIZE_PIN_CONTROL(3)
-SPECIALIZE_PIN_CONTROL(4)
-SPECIALIZE_PIN_CONTROL(5)
-SPECIALIZE_PIN_CONTROL(6)
-SPECIALIZE_PIN_CONTROL(7)
+SPECIALIZE_PIN(0)
+SPECIALIZE_PIN(1)
+SPECIALIZE_PIN(2)
+SPECIALIZE_PIN(3)
+SPECIALIZE_PIN(4)
+SPECIALIZE_PIN(5)
+SPECIALIZE_PIN(6)
+SPECIALIZE_PIN(7)
 
 template<typename Port, uint8_t bit>
 struct Gpio {
@@ -92,14 +100,30 @@ struct Gpio {
   
   static inline void set_mode(PortMode mode) {
     if (mode == PORT_MODE_TOTEM_POLE) {
-      PinControl<Port, bit>::set(PORT_OPC_TOTEM_gc);
+      Pin<Port, bit>::set_control(PORT_OPC_TOTEM_gc);
     } else if (mode == PORT_MODE_BUS_KEEPER) {
-      PinControl<Port, bit>::set(PORT_OPC_BUSKEEPER_gc);
+      Pin<Port, bit>::set_control(PORT_OPC_BUSKEEPER_gc);
     } else if (mode == PORT_MODE_PULL_UP) {
-      PinControl<Port, bit>::set(PORT_OPC_PULLUP_gc);
+      Pin<Port, bit>::set_control(PORT_OPC_PULLUP_gc);
     } else if (mode == PORT_MODE_PULL_DOWN) {
-      PinControl<Port, bit>::set(PORT_OPC_PULLDOWN_gc);
+      Pin<Port, bit>::set_control(PORT_OPC_PULLDOWN_gc);
     }
+  }
+  
+  static inline void set_sense(SenseMode mode) {
+    if (mode == SENSE_MODE_BOTH_EDGES) {
+      Pin<Port, bit>::set_control(PORT_ISC_BOTHEDGES_gc);
+    } else if (mode == SENSE_MODE_RISING) {
+      Pin<Port, bit>::set_control(PORT_ISC_RISING_gc);
+    } else if (mode == SENSE_MODE_FALLING) {
+      Pin<Port, bit>::set_control(PORT_ISC_FALLING_gc);
+    } else if (mode == SENSE_MODE_LOW_LEVEL) {
+      Pin<Port, bit>::set_control(PORT_ISC_LEVEL_gc);
+    }
+  }
+  
+  static inline uint8_t event() {
+    return Port::event_base() + bit;
   }
   
   static inline void High() {
