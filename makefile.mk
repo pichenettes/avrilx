@@ -53,11 +53,9 @@ CPPFLAGS      = -mmcu=$(MCU) -I. \
 			-fdata-sections \
 			-ffunction-sections \
 			-fno-move-loop-invariants \
-			-fshort-enums \
 			$(EXTRA_DEFINES) \
 			$(MMC_CONFIG) \
 			-D$(MCU_DEFINE) \
-			-DSERIAL_RX_0 \
 			-mcall-prologues
 CXXFLAGS      = -fno-exceptions
 ASFLAGS       = -mmcu=$(MCU) -I. -x assembler-with-cpp
@@ -125,7 +123,7 @@ $(BUILD_DIR):
 		mkdir -p $(BUILD_DIR)
 
 $(TARGET_ELF):  $(OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(OBJS) $(SYS_OBJS)
+		$(CC) $(LDFLAGS) -o $@ $(OBJS) $(SYS_OBJS) -lc
 
 $(DEP_FILE):  $(BUILD_DIR) $(DEPS)
 		cat $(DEPS) > $(DEP_FILE)
