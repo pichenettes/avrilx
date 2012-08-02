@@ -22,6 +22,7 @@
 
 #include "avrlibx/avrlibx.h"
 #include "avrlibx/io/ring_buffer.h"
+#include "avrlibx/system/time.h"
 #include "avrlibx/utils/op.h"
 
 namespace avrlibx {
@@ -30,7 +31,8 @@ enum ControlType {
   CONTROL_POT = 0,
   CONTROL_ENCODER = 1,
   CONTROL_ENCODER_CLICK = 2,
-  CONTROL_SWITCH = 3
+  CONTROL_SWITCH = 3,
+  CONTROL_REFRESH = 0xff
 };
 
 struct Event {
@@ -56,7 +58,6 @@ class EventQueue {
   };
   
   static void AddEvent(uint8_t control_type, uint8_t id, uint8_t data) {
-    Touch();
     Word v;
     v.bytes[0] = U8ShiftLeft4(control_type) | (id & 0x0f);
     v.bytes[1] = data;

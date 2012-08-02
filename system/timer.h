@@ -24,6 +24,7 @@
 
 #include "avrlibx/avrlibx.h"
 #include "avrlibx/io/gpio.h"
+#include "avrlibx/system/event_system.h"
 
 namespace avrlibx {
 
@@ -52,6 +53,16 @@ enum TimerChannel {
   TIMER_CHANNEL_B,
   TIMER_CHANNEL_C,
   TIMER_CHANNEL_D
+};
+
+enum TimerEventAction {
+  TIMER_EVENT_ACTION_NONE = TC_EVACT_OFF_gc,
+  TIMER_EVENT_ACTION_CAPTURE = TC_EVACT_CAPT_gc,
+  TIMER_EVENT_ACTION_UPDOWN = TC_EVACT_UPDOWN_gc,
+  TIMER_EVENT_ACTION_QDEC = TC_EVACT_QDEC_gc,
+  TIMER_EVENT_ACTION_RESTART = TC_EVACT_RESTART_gc,
+  TIMER_EVENT_ACTION_FRQ = TC_EVACT_FRW_gc,
+  TIMER_EVENT_ACTION_PW = TC_EVACT_PW_gc
 };
 
 template<typename Port, uint8_t index> struct TCWrapper { };
@@ -90,6 +101,18 @@ struct TCWrapper<Port ## port, index> { \
       TC ## port ## 0_CCCBUF = value; \
     } else if (channel == TIMER_CHANNEL_D && !index) { \
       TC ## port ## 0_CCDBUF = value; \
+    } \
+  } \
+  template<uint8_t channel> \
+  static inline uint16_t get_channel() { \
+    if (channel == TIMER_CHANNEL_A) { \
+      return TC ## port ## index ## _CCA; \
+    } else if (channel == TIMER_CHANNEL_B) { \
+      return TC ## port ## index ## _CCB; \
+    } else if (channel == TIMER_CHANNEL_C && !index) { \
+      return TC ## port ## 0_CCC; \
+    } else if (channel == TIMER_CHANNEL_D && !index) { \
+      return TC ## port ## 0_CCD; \
     } \
   } \
 };
@@ -133,10 +156,14 @@ class Timer {
     TC::set_period(value);
   }
   
-  static inline void StartPWM(uint8_t channel) {
+  static inline void Bind(uint8_t channel, TimerEventAction event_action) {
+    TC::tc().CTRLD = event_action | 0x08 | channel;
+  }
+  
+  static inline void EnableCC(uint8_t channel) {
     TC::tc().CTRLB |= (16 << channel);
   }
-  static inline void StopPWM(uint8_t channel) {
+  static inline void StopCC(uint8_t channel) {
     TC::tc().CTRLB &= ~(16 << channel);
   }
   
@@ -146,6 +173,10 @@ class Timer {
   
   static inline void EnableOverflowInterrupt(uint8_t int_level) {
     TC::tc().INTCTRLA = (TC::tc().INTCTRLA & 0xfc) | int_level;
+  }
+  
+  static inline void DisableOverflowInterrupt() {
+    TC::tc().INTCTRLA = TC::tc().INTCTRLA & 0xfc;
   }
   
   static inline void EnableChannelInterrupt(
@@ -159,6 +190,19 @@ class Timer {
   static inline void set_channel(uint16_t value) {
     TC::template set_channel<channel>(value);
   }
+  
+  template<uint8_t channel>
+  static inline uint16_t get_channel() {
+    return TC::template get_channel<channel>();
+  }
+  
+  template<uint8_t channel>
+  static inline void EnableChannelInterrupt(uint8_t int_level) {
+    uint8_t shift = channel << 2;
+    uint8_t mask = (0x3) << shift;
+    TC::tc().INTCTRLB = (TC::tc().INTCTRLB & ~mask) | (int_level << shift);
+  }
+  
   
   static inline uint8_t dma_tx_trigger() {
     //
@@ -218,7 +262,7 @@ class PWM {
  public:
   static inline void set_value(uint16_t value) {
     PWMPinToTimer<Port, pin>::T::template \
-    set_channel<PWMPinToTimer<Port, pin>::channel>(value);
+        set_channel<PWMPinToTimer<Port, pin>::channel>(value);
   }
   static inline void Init(uint8_t resolution) {
     typename PWMPinToTimer<Port, pin>::T timer;
@@ -229,13 +273,48 @@ class PWM {
   }
   static inline void Start() {
     Gpio<Port, pin>::set_direction(OUTPUT);
-    PWMPinToTimer<Port, pin>::T::StartPWM(PWMPinToTimer<Port, pin>::channel);
+    PWMPinToTimer<Port, pin>::T::EnableCC(PWMPinToTimer<Port, pin>::channel);
   }
   static inline void Stop() {
-    PWMPinToTimer<Port, pin>::T::StopPWM(PWMPinToTimer<Port, pin>::channel);
+    PWMPinToTimer<Port, pin>::T::StopCC(PWMPinToTimer<Port, pin>::channel);
   }
   static inline void Write(uint16_t value) { set_value(value); }
 };
+
+template<typename Port, uint8_t pin>
+class InputCapture {
+ public:
+  template<uint8_t event_channel>
+  static inline void Init() {
+    Gpio<Port, pin> gpio;
+    // Set the GPIO to input with rising edge detection, and disable pull-up.
+    gpio.set_direction(INPUT);
+    gpio.set_sense(SENSE_MODE_RISING);
+    gpio.Low();
+    // The selected event source is the GPIO state change.
+    EventSystemChannel<event_channel>::set_source(gpio.event());
+    // Bind this event to the channel capture.
+    PWMPinToTimer<Port, pin>::T::Bind(
+        event_channel,
+        TIMER_EVENT_ACTION_CAPTURE);
+    Start();
+  }
+  static inline void EnableInterrupt(uint8_t level) {
+    PWMPinToTimer<Port, pin>::T::template \
+        EnableChannelInterrupt<PWMPinToTimer<Port, pin>::channel>(level);
+  }
+  static inline uint16_t get_value() {
+    return PWMPinToTimer<Port, pin>::T::template \
+        get_channel<PWMPinToTimer<Port, pin>::channel>();
+  }
+  static inline void Start() {
+    PWMPinToTimer<Port, pin>::T::EnableCC(PWMPinToTimer<Port, pin>::channel);
+  }
+  static inline void Stop() {
+    PWMPinToTimer<Port, pin>::T::StopCC(PWMPinToTimer<Port, pin>::channel);
+  }
+};
+
 
 }  // namespace avrlibx
 
