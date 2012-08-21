@@ -493,7 +493,7 @@ class Reader(object):
       if event_type == 0x01:
         event = TextEvent(bytes)
       elif event_type == 0x02:
-        event = CopyrightEvent(bytes)
+        event = CopyrightInfoEvent(bytes)
       elif event_type == 0x03:
         event = TrackNameEvent(bytes)
       elif event_type == 0x04:
@@ -533,7 +533,7 @@ class Reader(object):
     
 
 if __name__ == '__main__':
-  m = MidiFile()
+  m = Writer()
   t = m.AddTrack()
   t.AddEvent(0, TempoEvent(120.0))
   

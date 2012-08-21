@@ -264,6 +264,10 @@ class PWM {
     PWMPinToTimer<Port, pin>::T::template \
         set_channel<PWMPinToTimer<Port, pin>::channel>(value);
   }
+  static inline uint16_t get_value() {
+    return PWMPinToTimer<Port, pin>::T::template \
+    get_channel<PWMPinToTimer<Port, pin>::channel>();
+  }
   static inline void Init(uint8_t resolution) {
     typename PWMPinToTimer<Port, pin>::T timer;
     timer.set_prescaler(TIMER_PRESCALER_CLK);
@@ -285,7 +289,7 @@ template<typename Port, uint8_t pin>
 class InputCapture {
  public:
   template<uint8_t event_channel>
-  static inline void Init() {
+  static inline void Init(bool frequency_measurement_mode) {
     Gpio<Port, pin> gpio;
     // Set the GPIO to input with rising edge detection, and disable pull-up.
     gpio.set_direction(INPUT);
@@ -296,7 +300,9 @@ class InputCapture {
     // Bind this event to the channel capture.
     PWMPinToTimer<Port, pin>::T::Bind(
         event_channel,
-        TIMER_EVENT_ACTION_CAPTURE);
+        frequency_measurement_mode
+            ? TIMER_EVENT_ACTION_FRQ
+            : TIMER_EVENT_ACTION_CAPTURE);
     Start();
   }
   static inline void EnableInterrupt(uint8_t level) {
