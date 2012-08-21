@@ -186,6 +186,11 @@ class Timer {
     TC::tc().INTCTRLB = (TC::tc().INTCTRLB & ~mask) | (int_level << shift);
   }
   
+  static inline void DisableChannelInterrupt(uint8_t channel) {
+    uint8_t mask = (0x3) << shift;
+    TC::tc().INTCTRLB = TC::tc().INTCTRLB & ~mask;
+  }
+  
   template<uint8_t channel>
   static inline void set_channel(uint16_t value) {
     TC::template set_channel<channel>(value);
@@ -203,6 +208,11 @@ class Timer {
     TC::tc().INTCTRLB = (TC::tc().INTCTRLB & ~mask) | (int_level << shift);
   }
   
+  template<uint8_t channel>
+  static inline void DisableChannelInterrupt() {
+    uint8_t mask = (0x3) << shift;
+    TC::tc().INTCTRLB = TC::tc().INTCTRLB & ~mask;
+  }
   
   static inline uint8_t dma_tx_trigger() {
     //
@@ -308,6 +318,10 @@ class InputCapture {
   static inline void EnableInterrupt(uint8_t level) {
     PWMPinToTimer<Port, pin>::T::template \
         EnableChannelInterrupt<PWMPinToTimer<Port, pin>::channel>(level);
+  }
+  static inline void DisableInterrupt() {
+    PWMPinToTimer<Port, pin>::T::template \
+        DisableChannelInterrupt<PWMPinToTimer<Port, pin>::channel>();
   }
   static inline uint16_t get_value() {
     return PWMPinToTimer<Port, pin>::T::template \
