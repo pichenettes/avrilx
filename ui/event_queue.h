@@ -22,6 +22,7 @@
 
 #include "avrlibx/avrlibx.h"
 #include "avrlibx/io/ring_buffer.h"
+#include "avrlibx/system/time.h"
 #include "avrlibx/utils/op.h"
 
 namespace avrlibx {

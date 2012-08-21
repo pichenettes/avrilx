@@ -17,7 +17,7 @@
 //
 // Utility functions for string processing.
 
-#include "avrlibx/string.h"
+#include "avrlibx/utils/string.h"
 
 #include <stdio.h>
 
