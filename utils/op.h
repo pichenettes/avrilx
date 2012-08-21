@@ -58,7 +58,7 @@ static inline uint8_t S16ShiftRight8(int16_t value) {
 
 #ifdef USE_OPTIMIZED_OP
 
-static inline uint24c_t U24AddC(uint24_t a, uint24_t b) {
+static inline uint24c_t U24AddC(uint24c_t a, uint24_t b) {
   uint16_t a_int = a.integral;
   uint16_t b_int = b.integral;
   uint8_t a_frac = a.fractional;
@@ -460,6 +460,30 @@ static inline int16_t S16U16MulShift16(int16_t a, uint16_t b) {
   return result;
 }
 
+static inline uint16_t U16U16MulShift16(uint16_t a, uint16_t b) {
+  uint16_t result;
+  uint16_t tmp;
+  asm(
+    "eor %A1, %A1"    "\n\t"
+    "mul %A2, %A3"    "\n\t"
+    "mov %B1, r1"     "\n\t"
+    "mul %B2, %B3"    "\n\t"
+    "movw %A0, r0"    "\n\t"
+    "mul %B3, %A2"    "\n\t"
+    "add %B1, r0"     "\n\t"
+    "adc %A0, r1"     "\n\t"
+    "adc %B0, %A1"    "\n\t"
+    "mul %B2, %A3"    "\n\t"
+    "add %B1, r0"     "\n\t"
+    "adc %A0, r1"     "\n\t"
+    "adc %B0, %A1"    "\n\t"
+    "eor r1, r1"      "\n\t"
+    : "=&r" (result), "=&r" (tmp)
+    : "a" (a), "a" (b)
+  );
+  return result;
+}
+
 static inline int16_t S16U8MulShift8(int16_t a, uint8_t b) {
   int16_t result;
   asm(
@@ -543,15 +567,15 @@ static inline uint8_t InterpolateSample(
 
 #else
 
-static inline uint24c_t U24AddC(uint24_t a, uint24_t b) {
+static inline uint24c_t U24AddC(uint24c_t a, uint24_t b) {
   uint24c_t result;
-  
+
   uint32_t av = static_cast<uint32_t>(a.integral) << 8;
   av += a.fractional;
-  
+
   uint32_t bv = static_cast<uint32_t>(b.integral) << 8;
   bv += b.fractional;
-  
+
   uint32_t sum = av + bv;
   result.integral = sum >> 8;
   result.fractional = sum & 0xff;
@@ -561,13 +585,13 @@ static inline uint24c_t U24AddC(uint24_t a, uint24_t b) {
 
 static inline uint24_t U24Add(uint24_t a, uint24_t b) {
   uint24_t result;
-  
+
   uint32_t av = static_cast<uint32_t>(a.integral) << 8;
   av += a.fractional;
-  
+
   uint32_t bv = static_cast<uint32_t>(b.integral) << 8;
   bv += b.fractional;
-  
+
   uint32_t sum = av + bv;
   result.integral = sum >> 8;
   result.fractional = sum & 0xff;
@@ -576,13 +600,13 @@ static inline uint24_t U24Add(uint24_t a, uint24_t b) {
 
 static inline uint24_t U24Sub(uint24_t a, uint24_t b) {
   uint24_t result;
-  
+
   uint32_t av = static_cast<uint32_t>(a.integral) << 8;
   av += a.fractional;
-  
+
   uint32_t bv = static_cast<uint32_t>(b.integral) << 8;
   bv += b.fractional;
-  
+
   uint32_t difference = av - bv;
   result.integral = sum >> 8;
   result.fractional = sum & 0xff;
@@ -703,7 +727,7 @@ static inline int16_t S16U8MulShift8(int16_t a, uint8_t b) {
   return (static_cast<int32_t>(a) * static_cast<uint32_t>(b)) >> 8;
 }
 
-static inline int16_t U16U8MulShift8(uint16_t a, uint8_t b) {
+static inline uint16_t U16U8MulShift8(uint16_t a, uint8_t b) {
   return (static_cast<uint32_t>(a) * static_cast<uint32_t>(b)) >> 8;
 }
 

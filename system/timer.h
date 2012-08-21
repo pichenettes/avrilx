@@ -92,6 +92,18 @@ struct TCWrapper<Port ## port, index> { \
       TC ## port ## 0_CCDBUF = value; \
     } \
   } \
+  template<uint8_t channel> \
+  static inline void get_channel(uint16_t value) { \
+    if (channel == TIMER_CHANNEL_A) { \
+      return TC ## port ## index ## _CCA; \
+    } else if (channel == TIMER_CHANNEL_B) { \
+      return TC ## port ## index ## _CCB; \
+    } else if (channel == TIMER_CHANNEL_C && !index) { \
+      return TC ## port ## 0_CCC; \
+    } else if (channel == TIMER_CHANNEL_D && !index) { \
+      return TC ## port ## 0_CCD; \
+    } \
+  } \
 };
 
 WRAP_TIMER(C, 0)
@@ -219,6 +231,10 @@ class PWM {
   static inline void set_value(uint16_t value) {
     PWMPinToTimer<Port, pin>::T::template \
     set_channel<PWMPinToTimer<Port, pin>::channel>(value);
+  }
+  static inline uint16_t get_value() {
+    return PWMPinToTimer<Port, pin>::T::template \
+    get_channel<PWMPinToTimer<Port, pin>::channel>();
   }
   static inline void Init(uint8_t resolution) {
     typename PWMPinToTimer<Port, pin>::T timer;
