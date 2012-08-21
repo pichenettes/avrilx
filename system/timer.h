@@ -187,6 +187,7 @@ class Timer {
   }
   
   static inline void DisableChannelInterrupt(uint8_t channel) {
+    uint8_t shift = channel << 2;
     uint8_t mask = (0x3) << shift;
     TC::tc().INTCTRLB = TC::tc().INTCTRLB & ~mask;
   }
@@ -210,6 +211,7 @@ class Timer {
   
   template<uint8_t channel>
   static inline void DisableChannelInterrupt() {
+    uint8_t shift = channel << 2;
     uint8_t mask = (0x3) << shift;
     TC::tc().INTCTRLB = TC::tc().INTCTRLB & ~mask;
   }
