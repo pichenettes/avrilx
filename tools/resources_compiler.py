@@ -212,7 +212,7 @@ class ResourceLibrary(object):
     f.write('#define %s\n\n' % header_guard)
     f.write(root.includes + '\n\n')
     if root.create_specialized_manager:
-      f.write('#include "avrlibx/resources_manager.h"\n')
+      f.write('#include "avrlibx/resources/resources_manager.h"\n')
     self._OpenNamespace(f)
     f.write('typedef %s ResourceId;\n\n' % \
         root.types[self.max_num_entries > 255])
