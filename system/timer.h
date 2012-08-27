@@ -156,6 +156,10 @@ class Timer {
     TC::set_period(value);
   }
   
+  static inline void Restart() {
+    TC::tc().CTRLFSET = 8;
+  }
+  
   static inline void Bind(uint8_t channel, TimerEventAction event_action) {
     TC::tc().CTRLD = event_action | 0x08 | channel;
   }
@@ -286,6 +290,14 @@ class PWM {
     timer.set_mode(TIMER_MODE_SINGLE_PWM);
     timer.set_pwm_resolution(resolution);
     Start();
+  }
+  static inline void EnableInterrupt(uint8_t level) {
+    PWMPinToTimer<Port, pin>::T::template \
+        EnableChannelInterrupt<PWMPinToTimer<Port, pin>::channel>(level);
+  }
+  static inline void DisableInterrupt() {
+    PWMPinToTimer<Port, pin>::T::template \
+        DisableChannelInterrupt<PWMPinToTimer<Port, pin>::channel>();
   }
   static inline void Start() {
     Gpio<Port, pin>::set_direction(OUTPUT);
