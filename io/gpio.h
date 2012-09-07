@@ -88,13 +88,16 @@ SPECIALIZE_PIN(5)
 SPECIALIZE_PIN(6)
 SPECIALIZE_PIN(7)
 
-template<typename Port, uint8_t bit>
+template<typename Port, uint8_t bit, bool slow = true>
 struct Gpio {
   static inline void set_direction(PortDirection direction) {
     if (direction == INPUT) {
       Port::dir_clr(_BV(bit));
     } else {
       Port::dir_set(_BV(bit));
+      if (slow) {
+        Pin<Port, bit>::set_control(PORT_SRLEN_bm);
+      }
     }
   }
   
