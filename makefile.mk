@@ -33,6 +33,7 @@ DEPS           = $(OBJS:.o=.d)
 TARGET_BIN     = $(BUILD_DIR)$(TARGET).bin
 TARGET_ELF     = $(BUILD_DIR)$(TARGET).elf
 TARGET_HEX     = $(BUILD_DIR)$(TARGET).hex
+TARGET_SIZE    = $(BUILD_DIR)$(TARGET).size
 TARGETS        = $(BUILD_DIR)$(TARGET).*
 DEP_FILE       = $(BUILD_DIR)depends.mk
 
@@ -144,17 +145,17 @@ clean:
 depends:  $(DEPS)
 		cat $(DEPS) > $(DEP_FILE)
 
-$(TARGET).size:  $(TARGET_ELF)
-		$(SIZE) $(TARGET_ELF) > $(TARGET).size
+$(TARGET_SIZE):  $(TARGET_ELF)
+		$(SIZE) $(TARGET_ELF) > $(TARGET_SIZE)
 
 $(BUILD_DIR)$(TARGET).top_symbols: $(TARGET_ELF)
 		$(NM) $(TARGET_ELF) --size-sort -C -f bsd -r > $@
 
-size: $(TARGET).size
-		cat $(TARGET).size | awk '{ print $$1+$$2 }' | tail -n1 | figlet | cowsay -n -f moose
+size: $(TARGET_SIZE)
+		cat $(TARGET_SIZE) | awk '{ print $$1+$$2 }' | tail -n1 | figlet | cowsay -n -f moose
 
-ramsize: $(TARGET).size
-		cat $(TARGET).size | awk '{ print $$2+$$3 }' | tail -n1 | figlet | cowsay -n -f small
+ramsize: $(TARGET_SIZE)
+		cat $(TARGET_SIZE) | awk '{ print $$2+$$3 }' | tail -n1 | figlet | cowsay -n -f small
 
 size_report:  build/$(TARGET)/$(TARGET).lss build/$(TARGET)/$(TARGET).top_symbols
 

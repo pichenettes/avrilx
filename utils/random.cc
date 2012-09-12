@@ -1,4 +1,4 @@
-// Copyright 2011 Olivier Gillet.
+// Copyright 2012 Olivier Gillet.
 //
 // Author: Olivier Gillet (ol.gillet@gmail.com)
 //
