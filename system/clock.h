@@ -80,6 +80,16 @@ inline void SetupRTC() {
   while(RTC.STATUS & RTC_SYNCBUSY_bm);
 }
 
+inline void SetupRTCMillisecondTick(uint8_t int_level) {
+  CCP = CCP_IOREG_gc;
+  CLK.RTCCTRL = CLK_RTCSRC_RCOSC_gc | CLK_RTCEN_bm;
+  RTC.CTRL = RTC_PRESCALER_DIV1_gc;
+  RTC.INTCTRL = int_level;
+  RTC.PER = 100;
+  RTC.CNT = 0;
+  while(RTC.STATUS & RTC_SYNCBUSY_bm);
+}
+
 }  // avrlibx
 
 #endif  // AVRLIBX_SYSTEM_CLOCK_H_

@@ -233,6 +233,26 @@ class Timer {
   }
 };
 
+// To be tested (XMega-AU only)
+template<typename Port, uint8_t index>
+class DualTimer {
+ public:
+  typedef TCWrapper<Port, index> TC;
+  static inline void set_prescaler(TimerPrescaler prescaler) {
+    TC::tc().CTRLE = 0x2;
+    TC::tc().CTRLA = prescaler;
+  }
+
+  static inline void EnabledInterrupts(uint8_t level_1, uint8_t level_2) {
+    TC::tc().INTCTRLA = (level_1 << 2) | level_2;
+  }
+  
+  static inline void set_periods(uint8_t period_1, uint8_t period_2) {
+    TC::tc().HPER = period_1;
+    TC::tc().LPER = period_2;
+  }
+};
+
 template<typename Port, uint8_t pin>
 struct PWMPinToTimer { };
 
