@@ -50,6 +50,7 @@ CAT            = cat
 
 CPPFLAGS      = -mmcu=$(MCU) -I. \
 			-g -Os -w -Wall \
+			-D__PROG_TYPES_COMPAT__ \
 			-DF_CPU=$(F_CPU) \
 			-fdata-sections \
 			-ffunction-sections \
@@ -109,9 +110,7 @@ $(BUILD_DIR)%.sym: $(BUILD_DIR)%.elf
 # AVRDude
 # ------------------------------------------------------------------------------
 
-AVRDUDE_CONF     = $(AVRDUDE_ETC_PATH)avrdude.conf
 AVRDUDE_COM_OPTS = -V -p $(DMCU)
-AVRDUDE_COM_OPTS += -C $(AVRDUDE_CONF)
 AVRDUDE_ISP_OPTS = -c $(PROGRAMMER) -P $(PROGRAMMER_PORT)
 
 # ------------------------------------------------------------------------------
