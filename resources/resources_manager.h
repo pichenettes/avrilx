@@ -1,6 +1,6 @@
-// Copyright 2009 Olivier Gillet.
+// Copyright 2009 Emilie Gillet.
 //
-// Author: Olivier Gillet (ol.gillet@gmail.com)
+// Author: Emilie Gillet (emilie.o.gillet@gmail.com)
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -30,17 +30,19 @@
 
 namespace avrlibx {
 
-template<const prog_char** strings, const prog_uint16_t** lookup_tables>
+template<
+  const prog_char* const* strings,
+  const prog_uint16_t* const* lookup_tables>
 struct ResourcesTables {
-  static inline const prog_char** string_table() { return strings; }
-  static inline const prog_uint16_t** lookup_table_table() {
+  static inline const prog_char* const* string_table() { return strings; }
+  static inline const prog_uint16_t* const* lookup_table_table() {
       return lookup_tables;
   }
 };
 
 struct NoResourcesTables {
-  static inline const prog_char** string_table() { return NULL; }
-  static inline const prog_uint16_t** lookup_table_table() { return NULL; }
+  static inline const prog_char* const* string_table() { return NULL; }
+  static inline const prog_uint16_t* const* lookup_table_table() { return NULL; }
 };
 
 template<typename ResourceId = uint8_t, typename Tables = NoResourcesTables>

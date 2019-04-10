@@ -1,6 +1,6 @@
-// Copyright 2011 Olivier Gillet.
+// Copyright 2011 Emilie Gillet.
 //
-// Author: Olivier Gillet (ol.gillet@gmail.com)
+// Author: Emilie Gillet (emilie.o.gillet@gmail.com)
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -460,6 +460,39 @@ static inline int16_t S16U16MulShift16(int16_t a, uint16_t b) {
   return result;
 }
 
+static inline int16_t S16U12MulShift12(int16_t a, uint16_t b) {
+  int16_t result;
+  int16_t tmp;
+  asm(
+    "add %A3, %A3"    "\n\t"
+    "adc %B3, %B3"    "\n\t"
+    "add %A3, %A3"    "\n\t"
+    "adc %B3, %B3"    "\n\t"
+    "add %A3, %A3"    "\n\t"
+    "adc %B3, %B3"    "\n\t"
+    "add %A3, %A3"    "\n\t"
+    "adc %B3, %B3"    "\n\t"
+    "eor %A1, %A1"    "\n\t"
+    "mul %A2, %A3"    "\n\t"
+    "mov %B1, r1"    "\n\t"
+    "mulsu %B2, %B3"  "\n\t"
+    "movw %A0, r0"    "\n\t"
+    "mul %B3, %A2"    "\n\t"
+    "add %B1, r0"     "\n\t"
+    "adc %A0, r1"     "\n\t"
+    "adc %B0, %A1"    "\n\t"
+    "mulsu %B2, %A3"  "\n\t"
+    "sbc %B0, %A1"    "\n\t"
+    "add %B1, r0"     "\n\t"
+    "adc %A0, r1"     "\n\t"
+    "adc %B0, %A1"    "\n\t"
+    "eor r1, r1"      "\n\t"
+    : "=&r" (result), "=&r" (tmp)
+    : "a" (a), "a" (b)
+  );
+  return result;
+}
+
 static inline uint16_t U16U16MulShift16(uint16_t a, uint16_t b) {
   uint16_t result;
   uint16_t tmp;
@@ -721,6 +754,10 @@ static inline uint16_t U16ShiftRight4(uint16_t a) {
 
 static inline int16_t S16U16MulShift16(int16_t a, uint16_t b) {
   return (static_cast<int32_t>(a) * static_cast<uint32_t>(b)) >> 16;
+}
+
+static inline int12_t S16U12MulShift12(int16_t a, uint16_t b) {
+  return (static_cast<int32_t>(a) * static_cast<uint32_t>(b)) >> 12;
 }
 
 static inline int16_t S16U8MulShift8(int16_t a, uint8_t b) {

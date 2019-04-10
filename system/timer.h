@@ -1,6 +1,6 @@
-// Copyright 2011 Olivier Gillet.
+// Copyright 2011 Emilie Gillet.
 //
-// Author: Olivier Gillet (ol.gillet@gmail.com)
+// Author: Emilie Gillet (emilie.o.gillet@gmail.com)
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -156,6 +156,10 @@ class Timer {
     TC::set_period(value);
   }
   
+  static inline void Restart() {
+    TC::tc().CTRLFSET = 8;
+  }
+  
   static inline void Bind(uint8_t channel, TimerEventAction event_action) {
     TC::tc().CTRLD = event_action | 0x08 | channel;
   }
@@ -186,6 +190,12 @@ class Timer {
     TC::tc().INTCTRLB = (TC::tc().INTCTRLB & ~mask) | (int_level << shift);
   }
   
+  static inline void DisableChannelInterrupt(uint8_t channel) {
+    uint8_t shift = channel << 2;
+    uint8_t mask = (0x3) << shift;
+    TC::tc().INTCTRLB = TC::tc().INTCTRLB & ~mask;
+  }
+  
   template<uint8_t channel>
   static inline void set_channel(uint16_t value) {
     TC::template set_channel<channel>(value);
@@ -203,6 +213,12 @@ class Timer {
     TC::tc().INTCTRLB = (TC::tc().INTCTRLB & ~mask) | (int_level << shift);
   }
   
+  template<uint8_t channel>
+  static inline void DisableChannelInterrupt() {
+    uint8_t shift = channel << 2;
+    uint8_t mask = (0x3) << shift;
+    TC::tc().INTCTRLB = TC::tc().INTCTRLB & ~mask;
+  }
   
   static inline uint8_t dma_tx_trigger() {
     //
@@ -214,6 +230,26 @@ class Timer {
     // Here we use system event 0 for this purpose.
     EVSYS_CH0MUX = TC::overflow_event();
     return DMA_CH_TRIGSRC_EVSYS_CH0_gc;
+  }
+};
+
+// To be tested (XMega-AU only)
+template<typename Port, uint8_t index>
+class DualTimer {
+ public:
+  typedef TCWrapper<Port, index> TC;
+  static inline void set_prescaler(TimerPrescaler prescaler) {
+    TC::tc().CTRLE = 0x2;
+    TC::tc().CTRLA = prescaler;
+  }
+
+  static inline void EnabledInterrupts(uint8_t level_1, uint8_t level_2) {
+    TC::tc().INTCTRLA = (level_1 << 2) | level_2;
+  }
+  
+  static inline void set_periods(uint8_t period_1, uint8_t period_2) {
+    TC::tc().HPER = period_1;
+    TC::tc().LPER = period_2;
   }
 };
 
@@ -264,12 +300,24 @@ class PWM {
     PWMPinToTimer<Port, pin>::T::template \
         set_channel<PWMPinToTimer<Port, pin>::channel>(value);
   }
+  static inline uint16_t get_value() {
+    return PWMPinToTimer<Port, pin>::T::template \
+    get_channel<PWMPinToTimer<Port, pin>::channel>();
+  }
   static inline void Init(uint8_t resolution) {
     typename PWMPinToTimer<Port, pin>::T timer;
     timer.set_prescaler(TIMER_PRESCALER_CLK);
     timer.set_mode(TIMER_MODE_SINGLE_PWM);
     timer.set_pwm_resolution(resolution);
     Start();
+  }
+  static inline void EnableInterrupt(uint8_t level) {
+    PWMPinToTimer<Port, pin>::T::template \
+        EnableChannelInterrupt<PWMPinToTimer<Port, pin>::channel>(level);
+  }
+  static inline void DisableInterrupt() {
+    PWMPinToTimer<Port, pin>::T::template \
+        DisableChannelInterrupt<PWMPinToTimer<Port, pin>::channel>();
   }
   static inline void Start() {
     Gpio<Port, pin>::set_direction(OUTPUT);
@@ -285,7 +333,7 @@ template<typename Port, uint8_t pin>
 class InputCapture {
  public:
   template<uint8_t event_channel>
-  static inline void Init() {
+  static inline void Init(bool frequency_measurement_mode) {
     Gpio<Port, pin> gpio;
     // Set the GPIO to input with rising edge detection, and disable pull-up.
     gpio.set_direction(INPUT);
@@ -296,12 +344,18 @@ class InputCapture {
     // Bind this event to the channel capture.
     PWMPinToTimer<Port, pin>::T::Bind(
         event_channel,
-        TIMER_EVENT_ACTION_CAPTURE);
+        frequency_measurement_mode
+            ? TIMER_EVENT_ACTION_FRQ
+            : TIMER_EVENT_ACTION_CAPTURE);
     Start();
   }
   static inline void EnableInterrupt(uint8_t level) {
     PWMPinToTimer<Port, pin>::T::template \
         EnableChannelInterrupt<PWMPinToTimer<Port, pin>::channel>(level);
+  }
+  static inline void DisableInterrupt() {
+    PWMPinToTimer<Port, pin>::T::template \
+        DisableChannelInterrupt<PWMPinToTimer<Port, pin>::channel>();
   }
   static inline uint16_t get_value() {
     return PWMPinToTimer<Port, pin>::T::template \

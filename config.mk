@@ -1,6 +1,6 @@
-# Copyright 2011 Olivier Gillet.
+# Copyright 2011 Emilie Gillet.
 #
-# Author: Olivier Gillet (ol.gillet@gmail.com)
+# Author: Emilie Gillet (emilie.o.gillet@gmail.com)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 AVRLIBX_TOOLS_PATH = /usr/local/CrossPack-AVR/bin/
-AVRDUDE_ETC_PATH   = /opt/local/etc/
-AVRDUDE_PATH       = /opt/local/bin/
+AVRDUDE_PATH       = /usr/local/CrossPack-AVR/bin/
 PROGRAMMER         = avrispmkII
 PROGRAMMER_PORT    = usb

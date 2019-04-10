@@ -1,8 +1,8 @@
 #!/usr/bin/python2.5
 #
-# Copyright 2011 Olivier Gillet.
+# Copyright 2011 Emilie Gillet.
 #
-# Author: Olivier Gillet (ol.gillet@gmail.com)
+# Author: Emilie Gillet (emilie.o.gillet@gmail.com)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -150,7 +150,7 @@ class ResourceTable(object):
     c_type = self.c_type
     name = self.name
     f.write(
-        '\n\n%(modifier)sconst %(c_type)s* %(name)s_table[] = {\n' % locals())
+        '\n\n%(modifier)sconst %(c_type)s* const %(name)s_table[] = {\n' % locals())
     for entry in self.entries:
       f.write('  %s,\n' % entry.variable_name)
     f.write('};\n\n')
@@ -187,7 +187,7 @@ class ResourceLibrary(object):
 
   def _DeclareTables(self, f):
     for table in self._tables:
-      f.write('extern const %s* %s_table[];\n\n' % (table.c_type, table.name)) 
+      f.write('extern const %s* const %s_table[];\n\n' % (table.c_type, table.name)) 
 
   def _DeclareEntries(self, f):
     for table in self._tables:
@@ -212,7 +212,7 @@ class ResourceLibrary(object):
     f.write('#define %s\n\n' % header_guard)
     f.write(root.includes + '\n\n')
     if root.create_specialized_manager:
-      f.write('#include "avrlibx/resources_manager.h"\n')
+      f.write('#include "avrlibx/resources/resources_manager.h"\n')
     self._OpenNamespace(f)
     f.write('typedef %s ResourceId;\n\n' % \
         root.types[self.max_num_entries > 255])

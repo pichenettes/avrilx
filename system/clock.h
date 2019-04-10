@@ -1,6 +1,6 @@
-// Copyright 2011 Olivier Gillet.
+// Copyright 2011 Emilie Gillet.
 //
-// Author: Olivier Gillet (ol.gillet@gmail.com)
+// Author: Emilie Gillet (emilie.o.gillet@gmail.com)
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -76,6 +76,16 @@ inline void SetupRTC() {
   CLK.RTCCTRL = CLK_RTCSRC_ULP_gc | CLK_RTCEN_bm;
   RTC.CTRL = RTC_PRESCALER_DIV1_gc;
   RTC.PER = 0xffff;
+  RTC.CNT = 0;
+  while(RTC.STATUS & RTC_SYNCBUSY_bm);
+}
+
+inline void SetupRTCMillisecondTick(uint8_t int_level) {
+  CCP = CCP_IOREG_gc;
+  CLK.RTCCTRL = CLK_RTCSRC_RCOSC_gc | CLK_RTCEN_bm;
+  RTC.CTRL = RTC_PRESCALER_DIV1_gc;
+  RTC.INTCTRL = int_level;
+  RTC.PER = 100;
   RTC.CNT = 0;
   while(RTC.STATUS & RTC_SYNCBUSY_bm);
 }
