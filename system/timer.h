@@ -49,10 +49,10 @@ enum TimerPrescaler {
 };
 
 enum TimerChannel {
-  TIMER_CHANNEL_A,
-  TIMER_CHANNEL_B,
-  TIMER_CHANNEL_C,
-  TIMER_CHANNEL_D
+  TIMER_CHANNEL_A = 0,
+  TIMER_CHANNEL_B = 1,
+  TIMER_CHANNEL_C = 2,
+  TIMER_CHANNEL_D = 3
 };
 
 enum TimerEventAction {
@@ -181,7 +181,7 @@ class Timer {
   
   static inline void EnableChannelInterrupt(
       uint8_t channel, uint8_t int_level) {
-    uint8_t shift = channel << 2;
+    uint8_t shift = channel << 1;
     uint8_t mask = (0x3) << shift;
     TC::tc().INTCTRLB = (TC::tc().INTCTRLB & ~mask) | (int_level << shift);
   }
@@ -198,7 +198,7 @@ class Timer {
   
   template<uint8_t channel>
   static inline void EnableChannelInterrupt(uint8_t int_level) {
-    uint8_t shift = channel << 2;
+    uint8_t shift = channel << 1;
     uint8_t mask = (0x3) << shift;
     TC::tc().INTCTRLB = (TC::tc().INTCTRLB & ~mask) | (int_level << shift);
   }
